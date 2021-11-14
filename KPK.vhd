@@ -43,13 +43,13 @@ end component;
 component Adder is 
 	port( reset			: IN std_logic; 
 			comparison	: IN std_logic_vector( 1 downto 0 ); 
-			x, y			: IN std_logic_vector( 7 downto 0 ); 
+			x, y		: IN std_logic_vector( 7 downto 0 ); 
 			XAddX, YAddY: OUT std_logic_vector( 7 downto 0 ) 
 		); 
 end component;
  
--- komponen Regis untuk menyimpan x atau y sebelumnya
-component Regis is 
+-- komponen Register untuk menyimpan x atau y sebelumnya
+component Register is 
 	port( reset, clk, LOAD: IN std_logic; 
 			INPUT				 : IN std_logic_vector( 7 downto 0 ); 
 			OUTPUT		  	 : OUT std_logic_vector( 7 downto 0 ) 
