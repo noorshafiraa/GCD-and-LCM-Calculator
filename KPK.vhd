@@ -5,7 +5,7 @@ use IEEE.std_logic_unsigned.all;
 use work.all;
 
 entity KPK is
-	port( rst, clk, i_enter	: IN std_logic; --in_enter apadah
+	port( reset, clk, i_enter			: IN std_logic; --in_enter apadah
 			X_in, Y_in			: IN std_logic_vector( 7 downto 0 ); --8 bit 2 input
 			KPK_OUT				: OUT std_logic_vector( 15 downto 0 ) 
 		);
