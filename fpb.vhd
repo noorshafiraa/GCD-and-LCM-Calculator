@@ -6,11 +6,13 @@ use work.all;
 
 -- !!! NOT PROOFREAD !!!
 -- !!! HAVEN'T PASSED COMPILATION !!!
--- last update 16-11-21 10:41
+-- last update 16-11-21 12:57
 -- note :
---		top level fpb.vhd kurang lebih sudah lancar dan belum ditemukan masalah
---		belum berhasil compile karena ada 17 errors at fsm.vhd
---		Error (10500): VHDL syntax error at fsm.vhd(209) near text "when";  expecting "end", or "(", or an identifier ("when" is a reserved keyword), or a sequential statement
+--		terdapat error dengan pesan :
+--		Error (10476): VHDL error at fpb.vhd(76): type of identifier "Compare_OUT" does not agree with its usage as "std_logic" type
+--		Error (10476): VHDL error at fpb.vhd(76): type of identifier "Load_C" does not agree with its usage as "std_logic_vector" type
+
+
 
 
 entity FPB is
