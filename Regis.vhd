@@ -3,14 +3,14 @@ use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all; 
 use IEEE.std_logic_unsigned.all; 
 
-entity Register is
+entity Regis is
 	port( reset, clk, LOAD: IN std_logic; 
 		  INPUT			: IN std_logic_vector( 7 downto 0 ); 
 		  OUTPUT		: OUT std_logic_vector( 7 downto 0 ) 
 		); 
-end Register;
+end Regis;
  
-architecture Register_arc of Register is 
+architecture Register_arc of Regis is 
 begin 
 	-- proses untuk mengubah nilai register
 	process( reset, clk, LOAD, INPUT ) 
