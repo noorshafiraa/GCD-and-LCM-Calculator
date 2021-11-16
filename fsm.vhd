@@ -138,10 +138,10 @@ begin
 			else -- switch = "1"
 				En_X <= '0';
 				En_Y <= '0';
-				if( compare = "10" ) then 	-- X < Y 
-					nState <= Tambah_XX; 
-				elsif( compare = "01" ) then -- X > Y
+				if( compare = "10" ) then 	-- Y < X 
 					nState <= Tambah_YY; 
+				elsif( compare = "01" ) then -- Y > X
+					nState <= Tambah_XX; 
 				elsif( compare = "11" ) then -- Y = X
 					nState <= Output_FPB;
 				end if;
@@ -205,13 +205,17 @@ begin
 		when Tambah_XX =>
 			enable <= '0';
 			Sel_X <= '1';
+			Sel_Y <= '0';
 			En_X <= '1';
+			En_Y <= '0';
 			nState <= Banding;
 
 			-- Langkah yang menambah Y dengan Y awal
 		when Tambah_YY =>
 			enable <= '0';
+			Sel_X <= '0';
 			Sel_Y <= '1';
+			En_X <= '0';
 			En_Y <= '1';
 			nState <= Banding;
 		
