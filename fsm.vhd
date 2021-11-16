@@ -4,10 +4,11 @@ use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all; 
 
 entity fsm is 
-	port( rst, clk, proses, switch, FPB_AB, FPB_CD, FPB_ABCD				: in std_logic; 
-		  compare						: in std_logic_vector( 1 downto 0 ); 
-		  enable, Sel_X, Sel_Y, Sel_A, Sel_B, Sel_C, Sel_D, Sel_AB, Sel_CD : out std_logic;
-		  Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD : out std_logic
+	port( rst, clk, proses, switch, start				: in std_logic;
+			FPB_AB, FPB_CD, FPB_ABCD			: in std_logic_vector(0 downto 0);
+			compare						: in std_logic_vector( 1 downto 0 ); 
+			enable, Sel_X, Sel_Y, Sel_A, Sel_B, Sel_C, Sel_D, Sel_AB, Sel_CD : out std_logic;
+			Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD, En_X, En_Y : out std_logic
 		); 
 end fsm;
 
@@ -16,7 +17,7 @@ architecture fsm_arc of fsm is
 	-- state fsm yang digunakan
 	type Langkah is ( Ready, Idle, Load_ABCDXY, Banding, Kurang_AB, Kurang_BA, Kurang_CD, Kurang_DC, 
 							Kurang_FPB_AB_CD, Kurang_FPB_CD_AB, 
-							Tambah_XX', Tambah_YY', Output_FPB, Output_KPK ); 
+							Tambah_XX, Tambah_YY, Output_FPB, Output_KPK ); 
 	signal nState, cState: Langkah; 
 	
 begin 
@@ -34,7 +35,7 @@ begin
 	end process; 
 
 	-- proses kedua berisi Langkah state (FSM Utama)
-	process( proses, compare, cState ) 
+	process( proses, compare, cState, start, switch, FPB_AB, FPB_CD, FPB_ABCD ) 
 	begin 
 	
 		case cState is 
@@ -94,12 +95,13 @@ begin
 				Load_FPB_AB <= '1';
 				Load_FPB_CD <= '1';
 				nState <= Banding;
-			else
+			else  -- input untuk KPK
 				Sel_X <= '0'; 
 				Sel_Y <= '0'; 
 				En_X <= '1';
 				En_Y <= '1';
 				nState <= Banding; 
+			end if;
 		
 		-- Langkah memilih Langkah sesuai hasil komparasi dan menstop load
 		when Banding => 
@@ -110,28 +112,36 @@ begin
 				Load_D <= '0';
 				Load_FPB_AB <= '0';
 				Load_FPB_CD <= '0';
-				if( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" compare = "10" ) then 	-- B < A 
-					nState <= Kurang_AB; 
-				elsif( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" and compare = "01" ) then -- B > A
-					nState <= Kurang_BA; 
-				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" and compare = "10" ) then -- D < C
-					nState <= Kurang_CD; 
-				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" and compare = "01" ) then -- D > C
-					nState <= Kurang_DC; 
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" and compare = "10" ) then -- CD < AB
-					nState <= Kurang_FPB_AB_CD; 
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" and compare = "01" ) then -- CD > AB
-					nState <= Kurang_FPB_CD_AB; 
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "1" and compare = "11" ) then -- CD = AB
-					nState <= Output_FPB;
+				if( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
+					if( compare = "10" ) then 	-- B < A
+						nState <= Kurang_AB; 
+					elsif( compare = "01" ) then -- B > A
+						nState <= Kurang_BA; 
+					end if;
+				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
+					if( compare = "10" ) then -- D < C
+						nState <= Kurang_CD; 
+					elsif( compare = "01" ) then -- D > C
+						nState <= Kurang_DC;
+					end if;	
+				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" ) then 
+					if( compare = "10" ) then -- CD < AB
+						nState <= Kurang_FPB_AB_CD;
+					elsif( compare = "01" ) then -- CD > AB
+						nState <= Kurang_FPB_CD_AB; 
+					end if;	
+				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "1" ) then 
+					if ( compare = "11" ) then -- CD = AB
+						nState <= Output_FPB;
+					end if;
 				end if;
 			else -- switch = "1"
 				En_X <= '0';
 				En_Y <= '0';
 				if( compare = "10" ) then 	-- X < Y 
-					nState <= Tambah_XX'; 
+					nState <= Tambah_XX; 
 				elsif( compare = "01" ) then -- X > Y
-					nState <= Tambah_YY'; 
+					nState <= Tambah_YY; 
 				elsif( compare = "11" ) then -- Y = X
 					nState <= Output_FPB;
 				end if;
@@ -192,14 +202,14 @@ begin
 			nState <= Banding;
 			
 			-- Langkah yang menambah X dengan X awal 
-		when Tambah_XX' =>
+		when Tambah_XX =>
 			enable <= '0';
 			Sel_X <= '1';
 			En_X <= '1';
 			nState <= Banding;
 
 			-- Langkah yang menambah Y dengan Y awal
-		when Tambah_YY' =>
+		when Tambah_YY =>
 			enable <= '0';
 			Sel_Y <= '1';
 			En_Y <= '1';
@@ -221,7 +231,7 @@ begin
 		
 		-- Langkah terakhir jika lainnya, kembali ke kondisi reset
 		when others => 
-			nState <= Start;
+			nState <= Idle;
  
 		end case; 
 	
