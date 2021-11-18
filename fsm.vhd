@@ -4,8 +4,8 @@ use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all; 
 
 entity fsm is 
-	port( rst, clk, proses, switch				: in std_logic;
-			compare						: in std_logic_vector( 1 downto 0 ); 
+	port( rst, clk, proses, switch_FPB, switch_KPK			: in std_logic;
+			compare1, compare2, compare3, compare4						: in std_logic_vector( 1 downto 0 ); 
 			SevSegment : out std_logic_vector (1 to 7);
 			SevSegment_Display : out std_logic_vector(0 downto 0);
 			enable, Sel_X, Sel_Y, Sel_A, Sel_B, Sel_C, Sel_D, Sel_AB, Sel_CD, Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD, En_X, En_Y : out std_logic
@@ -19,7 +19,7 @@ architecture fsm_arc of fsm is
 							Kurang_FPB_AB_CD, Kurang_FPB_CD_AB, 
 							Tambah_XX, Tambah_YY, Output_FPB, Output_KPK ); 
 	signal nState, cState: Langkah; 
-	signal FPB_AB, FPB_CD, FPB_ABCD: std_logic_vector(0 downto 0);
+	signal FPB_AB, FPB_CD, FPB_ABCD: std_logic_vector(0 downto 0) := "0";
 	
 begin 
 
@@ -36,7 +36,7 @@ begin
 	end process; 
 
 	-- proses kedua berisi Langkah state (FSM Utama)
-	process( proses, compare, cState, switch, FPB_AB, FPB_CD, FPB_ABCD ) 
+	process( proses, compare1, compare2, compare3, compare4, cState, switch_FPB, switch_KPK, FPB_AB, FPB_CD, FPB_ABCD ) 
 	begin 
 	
 		case cState is 
@@ -51,7 +51,7 @@ begin
 		-- Langkah menreset kontrol register
 		when Idle => 
 			enable <= '0'; 
-			if ( switch = '0' ) then  -- input untuk FPB
+			if ( switch_FPB = '1' ) then  -- input untuk FPB
 				Sel_A <= '0'; 
 				Sel_B <= '0'; 
 				Sel_C <= '0'; 
@@ -65,7 +65,7 @@ begin
 				Load_FPB_AB <= '0';
 				Load_FPB_CD <= '0';
 				nState <= Load_ABCDXY;
-			else
+			elsif ( switch_KPK = '1' ) then
 				Sel_X <= '0'; 
 				Sel_Y <= '0'; 
 				En_X <= '0';
@@ -76,7 +76,7 @@ begin
 		-- Langkah memasukan input ke register (Load ke register)
 		when Load_ABCDXY => 
 			enable <= '0';
-			if ( switch = '0' ) then  -- input untuk FPB
+			if ( switch_FPB = '1' ) then  -- input untuk FPB
 				Sel_A <= '0'; 
 				Sel_B <= '0'; 
 				Sel_C <= '0'; 
@@ -92,7 +92,7 @@ begin
 				SevSegment <= "0100001";
 				SevSegment_Display <= "0";
 				nState <= Banding;
-			else  -- input untuk KPK
+			elsif ( switch_KPK = '1' ) then  -- input untuk KPK
 				Sel_X <= '0'; 
 				Sel_Y <= '0'; 
 				En_X <= '1';
@@ -104,7 +104,7 @@ begin
 		
 		-- Langkah memilih Langkah sesuai hasil komparasi dan menstop load
 		when Banding => 
-			if ( switch = '0' ) then 
+			if ( switch_FPB = '1' ) then 
 				Load_A <= '0'; 
 				Load_B <= '0';
 				Load_C <= '0';
@@ -112,45 +112,45 @@ begin
 				Load_FPB_AB <= '0';
 				Load_FPB_CD <= '0';
 				if( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
-					if( compare = "10" ) then 	-- B < A
+					if( compare1 = "10" ) then 	-- B < A
 						nState <= Kurang_AB; 
-					elsif( compare = "01" ) then -- B > A
+					elsif( compare1 = "01" ) then -- B > A
 						nState <= Kurang_BA; 
-					elsif( compare = "11" ) then -- A = B
+					elsif( compare1 = "11" ) then -- A = B
 						FPB_AB <= "1";
 						nState <= Banding;
 					end if;
 				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
-					if( compare = "10" ) then -- D < C
+					if( compare2 = "10" ) then -- D < C
 						nState <= Kurang_CD; 
-					elsif( compare = "01" ) then -- D > C
+					elsif( compare2 = "01" ) then -- D > C
 						nState <= Kurang_DC;
-					elsif( compare = "11" ) then -- C = D
+					elsif( compare2 = "11" ) then -- C = D
 						FPB_CD <= "1";
 						nState <= Banding;
 					end if;	
 				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" ) then 
-					if( compare = "10" ) then -- CD < AB
+					if( compare3 = "10" ) then -- CD < AB
 						nState <= Kurang_FPB_AB_CD;
-					elsif( compare = "01" ) then -- CD > AB
+					elsif( compare3 = "01" ) then -- CD > AB
 						nState <= Kurang_FPB_CD_AB; 
-					elsif( compare = "11" ) then -- AB = CD
+					elsif( compare3 = "11" ) then -- AB = CD
 						FPB_ABCD <= "1";
 						nState <= Banding;
 					end if;	
 				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "1" ) then 
-					if ( compare = "11" ) then -- CD = AB
+					if ( compare3 = "11" ) then -- CD = AB
 						nState <= Output_FPB;
 					end if;
 				end if;
-			else -- switch = "1"
+			elsif ( switch_KPK = '1' ) then 
 				En_X <= '0';
 				En_Y <= '0';
-				if( compare = "10" ) then 	-- Y < X 
+				if( compare4 = "10" ) then 	-- Y < X 
 					nState <= Tambah_YY; 
-				elsif( compare = "01" ) then -- Y > X
+				elsif( compare4 = "01" ) then -- Y > X
 					nState <= Tambah_XX; 
-				elsif( compare = "11" ) then -- Y = X
+				elsif( compare4 = "11" ) then -- Y = X
 					nState <= Output_KPK;
 				end if;
 			end if; 
@@ -250,4 +250,3 @@ begin
 	end process; 
 
 end fsm_arc;
-		
