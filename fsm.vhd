@@ -36,7 +36,7 @@ begin
 	end process; 
 
 	-- proses kedua berisi Langkah state (FSM Utama)
-	process( proses, compare1, compare2, compare3, cState, switch_FPB, switch_KPK, FPB_AB, FPB_CD, FPB_ABCD ) 
+	process( proses, compare1, compare2, compare3, compare4, cState, switch_FPB, switch_KPK, FPB_AB, FPB_CD, FPB_ABCD ) 
 	begin 
 	
 		case cState is 
