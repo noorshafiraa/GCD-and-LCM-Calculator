@@ -19,7 +19,7 @@ architecture fsm_arc of fsm is
 							Kurang_FPB_AB_CD, Kurang_FPB_CD_AB, 
 							Tambah_XX, Tambah_YY, Output_FPB, Output_KPK ); 
 	signal nState, cState: Langkah; 
-	signal FPB_AB, FPB_CD, FPB_ABCD: std_logic_vector(0 downto 0);
+	signal FPB_AB, FPB_CD, FPB_ABCD: std_logic;
 	
 begin 
 
@@ -42,6 +42,9 @@ begin
 		case cState is 
 		-- Langkah mengecek mulai tidaknya penghitungan
 		when Ready =>
+			FPB_AB <= '0';
+			FPB_CD <= '0';
+			FPB_ABCD <= '0';
 			if( proses = '0' ) then 
 				nState <= Ready; 
 			else 
@@ -111,34 +114,38 @@ begin
 				Load_D <= '0';
 				Load_FPB_AB <= '0';
 				Load_FPB_CD <= '0';
-				if( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
+				if( FPB_AB = '0' and FPB_CD = '0' and FPB_ABCD = '0' ) then 
 					if( compare = "10" ) then 	-- B < A
 						nState <= Kurang_AB; 
 					elsif( compare = "01" ) then -- B > A
 						nState <= Kurang_BA; 
 					elsif( compare = "11" ) then -- A = B
-						FPB_AB <= "1";
+						FPB_AB <= '1';
+						FPB_CD <= '0';
 						nState <= Banding;
 					end if;
-				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
+				elsif( FPB_AB = '1' and FPB_CD = '0' and FPB_ABCD = '0' ) then 
 					if( compare = "10" ) then -- D < C
 						nState <= Kurang_CD; 
 					elsif( compare = "01" ) then -- D > C
 						nState <= Kurang_DC;
 					elsif( compare = "11" ) then -- C = D
-						FPB_CD <= "1";
+						FPB_CD <= '1';
+						FPB_AB <= '1';
 						nState <= Banding;
 					end if;	
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" ) then 
+				elsif( FPB_AB = '1' and FPB_CD = '1' and FPB_ABCD = '0' ) then 
 					if( compare = "10" ) then -- CD < AB
 						nState <= Kurang_FPB_AB_CD;
 					elsif( compare = "01" ) then -- CD > AB
 						nState <= Kurang_FPB_CD_AB; 
 					elsif( compare = "11" ) then -- AB = CD
-						FPB_ABCD <= "1";
+						FPB_AB <= '1';
+						FPB_CD <= '1';
+						FPB_ABCD <= '1';
 						nState <= Banding;
 					end if;	
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "1" ) then 
+				elsif( FPB_AB = '1' and FPB_CD = '1' and FPB_ABCD = '1' ) then 
 					if ( compare = "11" ) then -- CD = AB
 						nState <= Output_FPB;
 					end if;
@@ -250,4 +257,3 @@ begin
 	end process; 
 
 end fsm_arc;
-		
