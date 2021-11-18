@@ -8,22 +8,21 @@ use work.all;
 -- !!! HAVEN'T PASSED COMPILATION !!!
 -- last update 16-11-21 21:30
 
+-- PASSED COMPILATION
 
-
-
-entity FPB is
-	port( rst, clk, i_enter, switch			: IN std_logic; 
+entity main is
+	port( rst, clk, i_enter, switch_gcd, switch_lcm	: IN std_logic; 
 		  A_in, B_in, C_in, D_in, P_in, Q_in	: IN std_logic_vector( 7 downto 0 ); 
 		  FPB_OUT						: OUT std_logic_vector( 7 downto 0 ) 
 		);
-end FPB;
+end main;
 
-architecture FPB_arc of FPB is
+architecture main_arc of main is
 
 -- komponen fsm untuk mengontrol alur
 component fsm is 
-	port( rst, clk, proses, switch				: in std_logic;
-			compare						: in std_logic_vector( 1 downto 0 ); 
+	port( rst, clk, proses, switch_FPB, switch_KPK			: in std_logic;
+			compare1, compare2, compare3, compare4						: in std_logic_vector( 1 downto 0 ); 
 			SevSegment : out std_logic_vector (1 to 7);
 			SevSegment_Display : out std_logic_vector(0 downto 0);
 			enable, Sel_X, Sel_Y, Sel_A, Sel_B, Sel_C, Sel_D, Sel_AB, Sel_CD, Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD, En_X, En_Y : out std_logic
@@ -74,7 +73,7 @@ signal Sub_AB, Sub_BA, Sub_CD, Sub_DC, Sub_PQ, Sub_QP, Sub_FPB_ABCD, Sub_FPB_CDA
 begin
 	
 	-- FSM controller 
-	TOFSM	: fsm 			port map(rst, clk, i_enter, switch, Compare_OUT1, SevSegment, SevSegment_Display, enable, Select_X, Select_Y, Select_A, Select_B, Select_C, Select_D, Select_AB, Select_CD, Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD, En_X, En_Y ); 
+	TOFSM	: fsm 			port map(rst, clk, i_enter, switch_gcd, switch_lcm, Compare_OUT1, Compare_OUT2, Compare_OUT3, Compare_OUT3, SevSegment, SevSegment_Display, enable, Select_X, Select_Y, Select_A, Select_B, Select_C, Select_D, Select_AB, Select_CD, Load_A, Load_B, Load_C, Load_D, Load_FPB_AB, Load_FPB_CD, En_X, En_Y ); 
 	
 	-- Datapath 
 	PMux_A	: Mux 			port map( rst, Select_A, A_in, Sub_AB, Mux_A ); 
@@ -100,4 +99,4 @@ begin
 	-- hasil FPB
 	FPB_OUT <= result;
 	 
-end FPB_arc;
+end main_arc;
