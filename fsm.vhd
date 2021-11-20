@@ -15,7 +15,7 @@ end fsm;
 architecture fsm_arc of fsm is 
 	
 	-- state fsm yang digunakan
-	type Langkah is ( Ready, Idle, Load_ABCDXY, Banding, Kurang_AB, Kurang_BA, Kurang_CD, Kurang_DC, 
+	type Langkah is ( Ready, Idle, Load_ABCDXY, Banding, BandingCD, BandingABCD, Kurang_AB, Kurang_BA, Kurang_CD, Kurang_DC, 
 							Kurang_FPB_AB_CD, Kurang_FPB_CD_AB, 
 							Tambah_XX, Tambah_YY, Output_FPB, Output_KPK ); 
 	signal nState, cState: Langkah; 
@@ -111,37 +111,13 @@ begin
 				Load_D <= '0';
 				Load_FPB_AB <= '0';
 				Load_FPB_CD <= '0';
-				if( FPB_AB = "0" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
-					if( compare1 = "10" ) then 	-- B < A
-						nState <= Kurang_AB; 
-					elsif( compare1 = "01" ) then -- B > A
-						nState <= Kurang_BA; 
-					elsif( compare1 = "11" ) then -- A = B
-						FPB_AB <= "1";
-						nState <= Banding;
-					end if;
-				elsif( FPB_AB = "1" and FPB_CD = "0" and FPB_ABCD = "0" ) then 
-					if( compare2 = "10" ) then -- D < C
-						nState <= Kurang_CD; 
-					elsif( compare2 = "01" ) then -- D > C
-						nState <= Kurang_DC;
-					elsif( compare2 = "11" ) then -- C = D
-						FPB_CD <= "1";
-						nState <= Banding;
-					end if;	
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "0" ) then 
-					if( compare3 = "10" ) then -- CD < AB
-						nState <= Kurang_FPB_AB_CD;
-					elsif( compare3 = "01" ) then -- CD > AB
-						nState <= Kurang_FPB_CD_AB; 
-					elsif( compare3 = "11" ) then -- AB = CD
-						FPB_ABCD <= "1";
-						nState <= Banding;
-					end if;	
-				elsif( FPB_AB = "1" and FPB_CD = "1" and FPB_ABCD = "1" ) then 
-					if ( compare3 = "11" ) then -- CD = AB
-						nState <= Output_FPB;
-					end if;
+				if( compare1 = "10" ) then 	-- B < A
+					nState <= Kurang_AB; 
+				elsif( compare1 = "01" ) then -- B > A
+					nState <= Kurang_BA; 
+				elsif( compare1 = "11" ) then -- A = B
+					FPB_AB <= "1";
+					nState <= BandingCD;
 				end if;
 			elsif ( switch_KPK = '1' ) then 
 				En_X <= '0';
@@ -154,6 +130,43 @@ begin
 					nState <= Output_KPK;
 				end if;
 			end if; 
+	
+		when BandingCD => 
+			if ( switch_FPB = '1' ) then 
+				Load_A <= '0'; 
+				Load_B <= '0';
+				Load_C <= '0';
+				Load_D <= '0';
+				Load_FPB_AB <= '0';
+				Load_FPB_CD <= '0';	
+				if( compare2 = "10" ) then -- D < C
+					nState <= Kurang_CD; 
+				elsif( compare2 = "01" ) then -- D > C
+					nState <= Kurang_DC;
+				elsif( compare2 = "11" ) then -- C = D
+					FPB_CD <= "1";
+					nState <= BandingABCD;
+				end if;	
+			end if;
+			
+		when BandingABCD => 
+			if ( switch_FPB = '1' ) then 
+				Load_A <= '0'; 
+				Load_B <= '0';
+				Load_C <= '0';
+				Load_D <= '0';
+				Load_FPB_AB <= '0';
+				Load_FPB_CD <= '0';	
+				if( compare3 = "10" ) then -- CD < AB
+					nState <= Kurang_FPB_AB_CD;
+				elsif( compare3 = "01" ) then -- CD > AB
+					nState <= Kurang_FPB_CD_AB; 
+				elsif( compare3 = "11" ) then -- AB = CD
+					FPB_ABCD <= "1";
+					nState <= Output_FPB;
+				end if;	
+			end if;
+			
 			
 		-- Langkah yang mengubah register A menjadi A - B jika B < A
 		when Kurang_AB => 
@@ -180,7 +193,7 @@ begin
 			Sel_D <= '0'; 
 			Load_C <= '1'; 
 			Load_D <= '0'; 
-			nState <= Banding;
+			nState <= BandingCD;
 
 			-- Langkah yang mengubah D menjadi D-C
 		when Kurang_DC => 
@@ -189,7 +202,7 @@ begin
 			Sel_D <= '1'; 
 			Load_C <= '0'; 
 			Load_D <= '1'; 
-			nState <= Banding;
+			nState <= BandingCD;
 
 			-- Langkah yang mengubah AB menjadi AB-CD
 		when Kurang_FPB_AB_CD => 
@@ -198,16 +211,16 @@ begin
 			Sel_CD <= '0'; 
 			Load_FPB_AB <= '1'; 
 			Load_FPB_CD <= '0'; 
-			nState <= Banding;
+			nState <= BandingABCD;
 
 			-- Langkah yang mengubah CD menjadi CD-AV
 		when Kurang_FPB_CD_AB => 
-			enable <= '0'; 
+			enable <= '0';
 			Sel_AB <= '0'; 
 			Sel_CD <= '1'; 
 			Load_FPB_AB <= '0'; 
 			Load_FPB_CD <= '1'; 
-			nState <= Banding;
+			nState <= BandingABCD;
 			
 			-- Langkah yang menambah X dengan X awal 
 		when Tambah_XX =>
@@ -250,3 +263,4 @@ begin
 	end process; 
 
 end fsm_arc;
+		

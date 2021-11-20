@@ -4,9 +4,6 @@ use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all; 
 use work.all;
 
--- !!! NOT PROOFREAD !!!
--- !!! HAVEN'T PASSED COMPILATION !!!
--- last update 16-11-21 21:30
 
 
 
@@ -81,8 +78,8 @@ begin
 	PMux_B	: Mux 			port map( rst, Select_B, B_IN, Sub_BA, Mux_B ); 
 	PMux_C	: Mux 			port map( rst, Select_C, C_IN, Sub_CD, Mux_C ); 
 	PMux_D	: Mux 			port map( rst, Select_D, D_IN, Sub_DC, Mux_D );
-	PMux_AB	: Mux 			port map( rst, Select_AB, Reg_B, Sub_FPB_ABCD, Mux_P );
-	PMux_CD	: Mux 			port map( rst, Select_CD, Reg_D, Sub_FPB_CDAB, Mux_Q );
+	PMux_AB	: Mux 			port map( rst, Select_AB, Sub_BA, Sub_FPB_ABCD, Mux_P );
+	PMux_CD	: Mux 			port map( rst, Select_CD, Sub_DC, Sub_FPB_CDAB, Mux_Q );
 	PReg_A	: Regis 		port map( rst, clk, Load_A, Mux_A, Reg_A ); 
 	PReg_B	: Regis 		port map( rst, clk, Load_B, Mux_B, Reg_B );
 	PReg_C	: Regis 		port map( rst, clk, Load_C, Mux_C, Reg_C );
