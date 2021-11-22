@@ -6,8 +6,8 @@ use IEEE.std_logic_unsigned.all;
 entity Adder is
 	port( reset		: IN std_logic; 
 		  comparison: IN std_logic_vector( 1 downto 0 ); 
-		  x_init, x, y_init, y	: IN std_logic_vector( 7 downto 0 ); 
-		  XAddX, YAddY: OUT std_logic_vector( 7 downto 0 ) 
+		  x_init, x, y_init, y	: IN std_logic_vector( 15 downto 0 ); 
+		  XAddX, YAddY: OUT std_logic_vector( 15 downto 0 ) 
 		);
 end Adder;
  
@@ -18,8 +18,8 @@ begin
 	begin 
 		
 		if( reset = '1' or comparison = "00" ) then		-- kondisi reset 
-			XAddX <= "00000000"; 
-			YAddY <= "00000000"; 
+			XAddX <= "0000000000000000"; 
+			YAddY <= "0000000000000000"; 
 		elsif( comparison = "10" ) then 				-- x > y
 			XAddX <= x; 		
 			YAddY <= ( y_init + y ); 				-- Y <= y + y_init
